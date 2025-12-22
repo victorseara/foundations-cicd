@@ -1,0 +1,42 @@
+trigger:
+  name: PR Quality Check Trigger
+  identifier: pr_quality_check_trigger
+  description: Triggers quality and security checks on Pull Requests targeting main branch
+  projectIdentifier: Proof_Web
+  orgIdentifier: default
+  pipelineIdentifier: nx_affected_iac_quality_check
+  enabled: true
+  tags:
+    type: ci
+    event: pull-request
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.VICTORSEARA_ORG
+          repoName: foundations-iac
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+            - key: targetBranch
+              operator: Equals
+              value: main
+          headerConditions: []
+          jexlCondition: ""
+          actions:
+            - Open
+            - Reopen
+            - Synchronize
+            - Edit
+  inputYaml: |
+    pipeline:
+      identifier: nx_affected_iac_quality_check
+      properties:
+        ci:
+          codebase:
+            build:
+              type: PR
+              spec:
+                number: <+trigger.prNumber>
