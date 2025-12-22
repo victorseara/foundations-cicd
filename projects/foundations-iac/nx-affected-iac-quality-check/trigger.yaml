@@ -5,6 +5,7 @@ trigger:
   projectIdentifier: Proof_Web
   orgIdentifier: default
   pipelineIdentifier: nx_affected_iac_quality_check
+  pipelineBranchName: main
   enabled: true
   tags:
     type: ci
