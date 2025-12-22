@@ -13,20 +13,3 @@ inputSet:
             type: branch
             spec:
               branch: <+input>
----
-
-inputSet:
-  name: PR Run Input Set
-  identifier: pr_run_input_set
-  description: Input set for PR-triggered pipeline execution
-  projectIdentifier: Proof_Web
-  orgIdentifier: default
-  pipeline:
-    identifier: nx_affected_iac_quality_check
-    properties:
-      ci:
-        codebase:
-          build:
-            type: PR
-            spec:
-              number: <+input>
