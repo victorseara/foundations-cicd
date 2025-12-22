@@ -16,7 +16,7 @@ trigger:
       spec:
         type: PullRequest
         spec:
-          connectorRef: account.VICTORSEARA_ORG
+          connectorRef: account.VICTORSEARAORG
           repoName: foundations-iac
           autoAbortPreviousExecutions: true
           payloadConditions:

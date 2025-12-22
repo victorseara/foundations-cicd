@@ -10,7 +10,7 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: account.VICTORSEARA_ORG
+        connectorRef: account.VICTORSEARAORG
         repoName: foundations-iac
         build: <+input>
   stages:
