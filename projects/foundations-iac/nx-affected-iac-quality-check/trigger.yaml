@@ -31,13 +31,5 @@ trigger:
             - Reopen
             - Synchronize
             - Edit
-  inputYaml: |
-    pipeline:
-      identifier: nx_affected_iac_quality_check
-      properties:
-        ci:
-          codebase:
-            build:
-              type: PR
-              spec:
-                number: <+trigger.prNumber>
+  inputSetRefs:
+    - pr_run_input_set
