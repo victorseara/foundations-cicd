@@ -15,5 +15,6 @@ pipeline:
       properties:
         ci:
           codebase:
-            repoName: <+input>
+            connectorRef: account.VICTORSEARAORG
+            repoName: <+trigger.payload.repository.name>
             build: <+input>
