@@ -167,6 +167,15 @@ template:
                               NX_HEAD: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>
                       - step:
                           type: Run
+                          name: Log pnpm store path
+                          identifier: log_pnpm_store_path
+                          spec:
+                            shell: Sh
+                            command: | 
+                              echo "=== Logging pnpm store path ==="
+                              pnpm store path
+                      - step:
+                          type: Run
                           name: Security Check
                           identifier: security_check
                           spec:
