@@ -8,22 +8,30 @@ pipeline:
     type: quality-check
     tool: nx
   properties:
-    connectorRef: account.VICTORSEARAORG
-    repoName: <+trigger.payload.repository.name>
-    build: <+input>
+    ci:
+      codebase:
+        connectorRef: account.VICTORSEARAORG
+        repoName: <+trigger.payload.repository.name>
+        build: <+input>
   stages:
     - stage:
         name: Testing pipeline connection
         identifier: testing_pipeline_connection
         type: CI
+        description: A simple stage to test pipeline connection from trigger
         spec:
-          spec:
-            cloneCodebase: true
-            caching:
-              enabled: true
-              override: false
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
           buildIntelligence:
             enabled: true
+          platform:
+            os: Linux
+            architecture: AMD64
+          runtime:
+            type: Cloud
+            spec: {}
           execution:
             steps:
               - step:
