@@ -1,0 +1,17 @@
+inputSet:
+  name: Sample input PR
+  identifier: Sample_input_PR
+  orgIdentifier: default
+  projectIdentifier: Proof_Web
+  pipeline:
+    identifier: Sample_Pipeline
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              repoName: <+trigger.payload.repository.name>
+              build:
+                type: PR
+                spec:
+                  number: <+trigger.prNumber>
