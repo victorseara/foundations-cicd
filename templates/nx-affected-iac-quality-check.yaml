@@ -33,76 +33,26 @@ template:
               name: Setup Dependencies
               identifier: setup_dependencies
               steps:
-                # 1.1 Install Node.js using .nvmrc
+                # 1.1 Install pnpm using GitHub Action
                 - step:
-                    type: Run
-                    name: Install Node
-                    identifier: install_node
-                    spec:
-                      shell: Bash
-                      command: |
-                        echo "=== Installing Node.js ==="
-                        
-                        # Read Node version from .nvmrc
-                        if [ -f ".nvmrc" ]; then
-                          NODE_VERSION=$(cat .nvmrc | tr -d 'v' | tr -d '\n' | tr -d ' ')
-                          echo "Found .nvmrc with version: $NODE_VERSION"
-                        else
-                          echo "Error: .nvmrc file not found"
-                          exit 1
-                        fi
-                        
-                        # Install nvm if not present
-                        export NVM_DIR="$HOME/.nvm"
-                        if [ ! -d "$NVM_DIR" ]; then
-                          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-                        fi
-                        
-                        # Load nvm
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                        
-                        # Install and use the specified Node version
-                        nvm install $NODE_VERSION
-                        nvm use $NODE_VERSION
-                        nvm alias default $NODE_VERSION
-                        
-                        # Verify installation
-                        echo "Node version: $(node --version)"
-                        echo "NPM version: $(npm --version)"
-                        
-                        # Export paths for subsequent steps
-                        echo "export NVM_DIR=\"$HOME/.nvm\"" >> $HOME/.bashrc
-                        echo "[ -s \"\$NVM_DIR/nvm.sh\" ] && \\. \"\$NVM_DIR/nvm.sh\"" >> $HOME/.bashrc
-
-                # 1.2 Install pnpm using .pnpm-version
-                - step:
-                    type: Run
+                    type: Action
                     name: Install Pnpm
                     identifier: install_pnpm
                     spec:
-                      shell: Bash
-                      command: |
-                        echo "=== Installing pnpm ==="
-                        
-                        # Load nvm
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                        
-                        # Read pnpm version from .pnpm-version
-                        if [ -f ".pnpm-version" ]; then
-                          PNPM_VERSION=$(cat .pnpm-version | tr -d '\n' | tr -d ' ')
-                          echo "Found .pnpm-version with version: $PNPM_VERSION"
-                        else
-                          echo "Error: .pnpm-version file not found"
-                          exit 1
-                        fi
-                        
-                        # Install pnpm using corepack or npm
-                        corepack enable 2>/dev/null || true
-                        npm install -g pnpm@$PNPM_VERSION
-                        
-                        # Verify installation
-                        echo "pnpm version: $(pnpm --version)"
+                      uses: pnpm/action-setup@v4
+                      with:
+                        version-file: .pnpm-version
+
+                # 1.2 Install Node.js using GitHub Action
+                - step:
+                    type: Action
+                    name: Install Node
+                    identifier: install_node
+                    spec:
+                      uses: actions/setup-node@v4
+                      with:
+                        node-version-file: .nvmrc
+                        cache: pnpm
 
                 # 1.3 Setup NX_HEAD and NX_BASE for affected commands
                 - step:
@@ -234,10 +184,6 @@ template:
                 command: |
                   echo "=== Installing project dependencies ==="
                   
-                  # Load nvm
-                  export NVM_DIR="$HOME/.nvm"
-                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                  
                   # Install dependencies
                   pnpm install --frozen-lockfile
                   
@@ -256,9 +202,7 @@ template:
                     command: |
                       echo "=== Running Quality Checks (affected projects) ==="
                       
-                      # Load nvm and tools
-                      export NVM_DIR="$HOME/.nvm"
-                      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                      # Add tools to PATH
                       export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
                       
                       # Set NX environment variables for affected detection
@@ -286,9 +230,7 @@ template:
                     command: |
                       echo "=== Running Security Checks (affected projects) ==="
                       
-                      # Load nvm and tools
-                      export NVM_DIR="$HOME/.nvm"
-                      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                      # Add tools to PATH
                       export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
                       
                       # Set NX environment variables for affected detection
