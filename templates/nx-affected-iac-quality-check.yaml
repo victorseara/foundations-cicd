@@ -1,6 +1,6 @@
 template:
-  name: NX Affected IAC Quality Check
-  identifier: nx_affected_iac_quality_check
+  name: Template NX Affected IAC Quality Check
+  identifier: template_nx_affected_iac_quality_check
   versionLabel: v1.0.0
   type: Pipeline
   tags:
