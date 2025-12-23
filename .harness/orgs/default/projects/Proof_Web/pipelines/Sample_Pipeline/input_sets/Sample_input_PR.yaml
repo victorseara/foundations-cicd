@@ -1,5 +1,6 @@
 inputSet:
   name: Sample input PR
+  tags: {}
   identifier: Sample_input_PR
   orgIdentifier: default
   projectIdentifier: Proof_Web
@@ -10,7 +11,7 @@ inputSet:
         properties:
           ci:
             codebase:
-              repoName: <+trigger.payload.repository.name>
+              repoName: foundations-iac
               build:
                 type: PR
                 spec:
