@@ -7,8 +7,13 @@ template:
     type: ci
     scope: iac
     tool: nx
-pipeline:
-      stages:
+  spec:
+    properties: 
+      ci:
+        codebase:
+          repoName: <+input>
+          build: <+input>
+    stages:
         - stage:
             name: NX Affected IAC Quality Check
             identifier: nx_affected_iac_quality_check
