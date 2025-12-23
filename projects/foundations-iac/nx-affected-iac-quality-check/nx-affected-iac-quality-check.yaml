@@ -7,32 +7,14 @@ pipeline:
     repo: foundations-iac
     type: quality-check
     tool: nx
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.VICTORSEARAORG
-        repoName: foundations-iac
-        build: <+input>
-  stages:
-    - stage:
-        name: IAC Quality Check
-        identifier: iac_quality_check
-        description: Run quality and security checks on affected IAC modules
-        template:
-          templateRef: account.nx_affected_iac_quality_check
-          versionLabel: v1.0.0
-          templateInputs:
-            type: CI
-            spec:
-              execution:
-                steps:
-                  - stepGroup:
-                      identifier: setup_dependencies
-                      steps:
-                        - step:
-                            identifier: setup_nx_env
-                            type: Run
-                            spec:
-                              envVariables:
-                                NX_BASE: origin/<+codebase.targetBranch>
-                                NX_HEAD: <+codebase.commitSha>
+  template:
+    templateRef: account.template_nx_affected_iac_quality_check
+    versionLabel: v1.0.0
+    gitBranch: main
+    templateInputs:
+      properties:
+        ci:
+          codebase:
+            connectorRef: account.VICTORSEARAORG
+            repoName: foundations-iac
+            build: <+input>
