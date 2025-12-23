@@ -16,5 +16,5 @@ pipeline:
         ci:
           codebase:
             connectorRef: account.VICTORSEARAORG
-            repoName: foundations-iac
+            repoName: <+input>
             build: <+input>
