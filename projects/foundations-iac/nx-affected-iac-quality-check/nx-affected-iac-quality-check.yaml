@@ -7,6 +7,10 @@ pipeline:
     repo: foundations-iac
     type: quality-check
     tool: nx
+  properties:
+    connectorRef: account.VICTORSEARAORG
+    repoName: <+trigger.payload.repository.name>
+    build: <+input>
   template:
     templateRef: account.template_nx_affected_iac_quality_check
     versionLabel: v1.0.0
