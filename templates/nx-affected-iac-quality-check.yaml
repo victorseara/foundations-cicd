@@ -45,7 +45,7 @@ template:
                             spec:
                               uses: pnpm/action-setup@v2
                               with:
-                                version-file: .pnpm-version
+                                version: 9
                         - step:
                             type: Action
                             name: Install Node
@@ -53,8 +53,7 @@ template:
                             spec:
                               uses: actions/setup-node@v2
                               with:
-                                node-version-file: .nvmrc
-                                cache: pnpm
+                                version: 24
                         - step:
                             type: Run
                             name: Setup NX Environment
