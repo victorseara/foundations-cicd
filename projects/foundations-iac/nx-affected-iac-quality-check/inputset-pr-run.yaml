@@ -1,0 +1,18 @@
+inputSet:
+  name: PR Run Input Set
+  identifier: pr_run_input_set
+  description: Input set for PR-triggered pipeline execution for foundations-inc
+  orgIdentifier: default
+  projectIdentifier: Proof_Web
+  pipeline:
+    identifier: nx_affected_iac_quality_check
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              repoName: foundations-iac
+              build:
+                type: PR
+                spec:
+                  number: <+trigger.prNumber>
