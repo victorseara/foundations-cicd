@@ -10,6 +10,7 @@ inputSet:
         properties:
           ci:
             codebase:
+              connectorRef: account.VICTORSEARAORG
               repoName: <+trigger.payload.repository.name>
               build:
                 type: PR

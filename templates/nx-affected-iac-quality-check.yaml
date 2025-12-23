@@ -11,6 +11,7 @@ template:
     properties: 
       ci:
         codebase:
+          connectorRef: <+input>
           repoName: <+input>
           build: <+input>
     stages:

@@ -2,7 +2,7 @@ inputSet:
   name: PR Run Input Set
   tags: {}
   identifier: pr_run_input_set
-  description: Input set for PR-triggered pipeline execution for foundations-inc
+  description: Input set for PR-triggered pipeline execution for foundations-iac
   orgIdentifier: default
   projectIdentifier: Proof_Web
   pipeline:
@@ -10,6 +10,8 @@ inputSet:
     properties:
       ci:
         codebase:
+          connectorRef: account.VICTORSEARAORG
+          repoName: <+trigger.payload.repository.name>
           build:
             type: PR
             spec:
