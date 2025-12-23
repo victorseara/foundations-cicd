@@ -2,246 +2,179 @@ template:
   name: NX Affected IAC Quality Check
   identifier: nx_affected_iac_quality_check
   versionLabel: v1.0.0
-  type: Stage
+  type: Pipeline
   tags:
     type: ci
     scope: iac
     tool: nx
-  spec:
-    type: CI
-    spec:
-      cloneCodebase: true
-      caching:
-        enabled: true
-        paths:
-          - /root/.local/share/pnpm/store
-          - node_modules
-      platform:
-        os: Linux
-        arch: Amd64
-      runtime:
-        type: Cloud
-        spec: {}
-      execution:
-        steps:
-          # ===========================================
-          # Step Group 1: Setup Dependencies
-          # ===========================================
-          - stepGroup:
-              name: Setup Dependencies
-              identifier: setup_dependencies
-              steps:
-                # 1.1 Install pnpm using GitHub Action
-                - step:
-                    type: Action
-                    name: Install Pnpm
-                    identifier: install_pnpm
-                    spec:
-                      uses: pnpm/action-setup@v4
-                      with:
-                        version-file: .pnpm-version
-
-                # 1.2 Install Node.js using GitHub Action
-                - step:
-                    type: Action
-                    name: Install Node
-                    identifier: install_node
-                    spec:
-                      uses: actions/setup-node@v4
-                      with:
-                        node-version-file: .nvmrc
-                        cache: pnpm
-
-                # 1.3 Setup NX_HEAD and NX_BASE for affected commands
-                - step:
-                    type: Run
-                    name: Setup NX Environment
-                    identifier: setup_nx_env
-                    spec:
-                      shell: Bash
-                      command: |
-                        echo "=== Setting up NX environment variables ==="
-                        
-                        # For Pull Requests, set NX_BASE and NX_HEAD
-                        if [ -n "<+codebase.prNumber>" ] && [ "<+codebase.prNumber>" != "null" ]; then
-                          echo "Pull Request detected: #<+codebase.prNumber>"
-                          
-                          # NX_BASE: The target branch of the PR (main, develop, etc.)
-                          export NX_BASE="origin/<+codebase.targetBranch>"
-                          
-                          # NX_HEAD: The current commit SHA
-                          export NX_HEAD="<+codebase.commitSha>"
-                          
-                          echo "NX_BASE=$NX_BASE"
-                          echo "NX_HEAD=$NX_HEAD"
-                        else
-                          echo "Not a PR build, using default affected behavior"
-                          export NX_BASE="origin/main~1"
-                          export NX_HEAD="HEAD"
-                        fi
-                        
-                        # Export for subsequent steps
-                        export NX_BASE
-                        export NX_HEAD
-                      envVariables:
-                        NX_BASE: origin/<+codebase.targetBranch>
-                        NX_HEAD: <+codebase.commitSha>
-                      outputVariables:
-                        - name: NX_BASE
-                        - name: NX_HEAD
-
-                # 1.4 Install Pre-requirements (parallel installation)
-                - parallel:
-                    - step:
-                        type: Run
-                        name: Install OpenTofu
-                        identifier: install_opentofu
-                        spec:
-                          shell: Bash
-                          command: |
-                            echo "=== Installing OpenTofu ==="
-                            
-                            # Install OpenTofu via official installer script
-                            curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh
-                            chmod +x install-opentofu.sh
-                            ./install-opentofu.sh --install-method standalone --skip-verify
-                            rm install-opentofu.sh
-                            
-                            # Add to PATH
-                            export PATH="$HOME/.opentofu/bin:$PATH"
-                            echo 'export PATH="$HOME/.opentofu/bin:$PATH"' >> $HOME/.bashrc
-                            
-                            # Verify installation
-                            tofu --version
-
-                    - step:
-                        type: Run
-                        name: Install TFLint
-                        identifier: install_tflint
-                        spec:
-                          shell: Bash
-                          command: |
-                            echo "=== Installing TFLint ==="
-                            
-                            # Install TFLint
-                            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-                            
-                            # Verify installation
-                            tflint --version
-
-                    - step:
-                        type: Run
-                        name: Install Checkov
-                        identifier: install_checkov
-                        spec:
-                          shell: Bash
-                          command: |
-                            echo "=== Installing Checkov ==="
-                            
-                            # Install Checkov via pip
-                            pip3 install --user checkov
-                            
-                            # Add to PATH
-                            export PATH="$HOME/.local/bin:$PATH"
-                            echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc
-                            
-                            # Verify installation
-                            checkov --version
-
-                    - step:
-                        type: Run
-                        name: Install terraform-docs
-                        identifier: install_terraform_docs
-                        spec:
-                          shell: Bash
-                          command: |
-                            echo "=== Installing terraform-docs ==="
-                            
-                            # Get latest version
-                            TERRAFORM_DOCS_VERSION="v0.18.0"
-                            
-                            # Download and install
-                            curl -sSLo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
-                            tar -xzf terraform-docs.tar.gz
-                            chmod +x terraform-docs
-                            mv terraform-docs /usr/local/bin/terraform-docs || sudo mv terraform-docs /usr/local/bin/terraform-docs 2>/dev/null || mv terraform-docs $HOME/.local/bin/
-                            rm terraform-docs.tar.gz
-                            
-                            # Verify installation
-                            terraform-docs --version
-
-          # ===========================================
-          # Step 2: Install Dependencies
-          # ===========================================
-          - step:
-              type: Run
-              name: Install Dependencies
-              identifier: install_dependencies
-              spec:
-                shell: Bash
-                command: |
-                  echo "=== Installing project dependencies ==="
-                  
-                  # Install dependencies
-                  pnpm install --frozen-lockfile
-                  
-                  echo "Dependencies installed successfully"
-
-          # ===========================================
-          # Steps 3 & 4: Quality Check and Security Check (Parallel)
-          # ===========================================
-          - parallel:
-              - step:
-                  type: Run
-                  name: Quality Check
-                  identifier: quality_check
-                  spec:
-                    shell: Bash
-                    command: |
-                      echo "=== Running Quality Checks (affected projects) ==="
-                      
-                      # Add tools to PATH
-                      export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
-                      
-                      # Set NX environment variables for affected detection
-                      export NX_BASE="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>"
-                      export NX_HEAD="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>"
-                      
-                      echo "NX_BASE: $NX_BASE"
-                      echo "NX_HEAD: $NX_HEAD"
-                      
-                      # Run quality checks on affected projects
-                      # This runs fmt, validate, and lint targets
-                      pnpm tofu:affected
-                      
-                      echo "Quality checks completed successfully"
-                    envVariables:
-                      NX_BASE: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>
-                      NX_HEAD: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>
-
-              - step:
-                  type: Run
-                  name: Security Check
-                  identifier: security_check
-                  spec:
-                    shell: Bash
-                    command: |
-                      echo "=== Running Security Checks (affected projects) ==="
-                      
-                      # Add tools to PATH
-                      export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
-                      
-                      # Set NX environment variables for affected detection
-                      export NX_BASE="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>"
-                      export NX_HEAD="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>"
-                      
-                      echo "NX_BASE: $NX_BASE"
-                      echo "NX_HEAD: $NX_HEAD"
-                      
-                      # Run security checks on affected projects
-                      pnpm nx affected -t security
-                      
-                      echo "Security checks completed successfully"
-                    envVariables:
-                      NX_BASE: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>
-                      NX_HEAD: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>
+pipeline:
+      stages:
+        - stage:
+            name: NX Affected IAC Quality Check
+            identifier: nx_affected_iac_quality_check
+            type: CI
+            spec:
+              cloneCodebase: true
+              caching:
+                enabled: true
+                paths:
+                  - /root/.local/share/pnpm/store
+                  - node_modules
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - stepGroup:
+                      name: Setup Dependencies
+                      identifier: setup_dependencies
+                      steps:
+                        - step:
+                            type: Action
+                            name: Install Pnpm
+                            identifier: install_pnpm
+                            spec:
+                              uses: pnpm/action-setup@v4
+                              with:
+                                version-file: .pnpm-version
+                        - step:
+                            type: Action
+                            name: Install Node
+                            identifier: install_node
+                            spec:
+                              uses: actions/setup-node@v4
+                              with:
+                                node-version-file: .nvmrc
+                                cache: pnpm
+                        - step:
+                            type: Run
+                            name: Setup NX Environment
+                            identifier: setup_nx_env
+                            spec:
+                              shell: Bash
+                              command: |
+                                echo "=== Setting up NX environment variables ==="
+                                
+                                if [ -n "<+codebase.prNumber>" ] && [ "<+codebase.prNumber>" != "null" ]; then
+                                  echo "Pull Request detected: #<+codebase.prNumber>"
+                                  export NX_BASE="origin/<+codebase.targetBranch>"
+                                  export NX_HEAD="<+codebase.commitSha>"
+                                  echo "NX_BASE=$NX_BASE"
+                                  echo "NX_HEAD=$NX_HEAD"
+                                else
+                                  echo "Not a PR build, using default affected behavior"
+                                  export NX_BASE="origin/main~1"
+                                  export NX_HEAD="HEAD"
+                                fi
+                                
+                                export NX_BASE
+                                export NX_HEAD
+                              envVariables:
+                                NX_BASE: origin/<+codebase.targetBranch>
+                                NX_HEAD: <+codebase.commitSha>
+                              outputVariables:
+                                - name: NX_BASE
+                                - name: NX_HEAD
+                        - parallel:
+                            - step:
+                                type: Run
+                                name: Install OpenTofu
+                                identifier: install_opentofu
+                                spec:
+                                  shell: Bash
+                                  command: |
+                                    echo "=== Installing OpenTofu ==="
+                                    curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh
+                                    chmod +x install-opentofu.sh
+                                    ./install-opentofu.sh --install-method standalone --skip-verify
+                                    rm install-opentofu.sh
+                                    export PATH="$HOME/.opentofu/bin:$PATH"
+                                    echo 'export PATH="$HOME/.opentofu/bin:$PATH"' >> $HOME/.bashrc
+                                    tofu --version
+                            - step:
+                                type: Run
+                                name: Install TFLint
+                                identifier: install_tflint
+                                spec:
+                                  shell: Bash
+                                  command: |
+                                    echo "=== Installing TFLint ==="
+                                    curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+                                    tflint --version
+                            - step:
+                                type: Run
+                                name: Install Checkov
+                                identifier: install_checkov
+                                spec:
+                                  shell: Bash
+                                  command: |
+                                    echo "=== Installing Checkov ==="
+                                    pip3 install --user checkov
+                                    export PATH="$HOME/.local/bin:$PATH"
+                                    echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.bashrc
+                                    checkov --version
+                            - step:
+                                type: Run
+                                name: Install terraform-docs
+                                identifier: install_terraform_docs
+                                spec:
+                                  shell: Bash
+                                  command: |
+                                    echo "=== Installing terraform-docs ==="
+                                    TERRAFORM_DOCS_VERSION="v0.18.0"
+                                    curl -sSLo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz
+                                    tar -xzf terraform-docs.tar.gz
+                                    chmod +x terraform-docs
+                                    mv terraform-docs /usr/local/bin/terraform-docs || sudo mv terraform-docs /usr/local/bin/terraform-docs 2>/dev/null || mv terraform-docs $HOME/.local/bin/
+                                    rm terraform-docs.tar.gz
+                                    terraform-docs --version
+                  - step:
+                      type: Run
+                      name: Install Dependencies
+                      identifier: install_dependencies
+                      spec:
+                        shell: Bash
+                        command: |
+                          echo "=== Installing project dependencies ==="
+                          pnpm install --frozen-lockfile
+                          echo "Dependencies installed successfully"
+                  - parallel:
+                      - step:
+                          type: Run
+                          name: Quality Check
+                          identifier: quality_check
+                          spec:
+                            shell: Bash
+                            command: |
+                              echo "=== Running Quality Checks (affected projects) ==="
+                              export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
+                              export NX_BASE="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>"
+                              export NX_HEAD="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>"
+                              echo "NX_BASE: $NX_BASE"
+                              echo "NX_HEAD: $NX_HEAD"
+                              pnpm tofu:affected
+                              echo "Quality checks completed successfully"
+                            envVariables:
+                              NX_BASE: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>
+                              NX_HEAD: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>
+                      - step:
+                          type: Run
+                          name: Security Check
+                          identifier: security_check
+                          spec:
+                            shell: Bash
+                            command: |
+                              echo "=== Running Security Checks (affected projects) ==="
+                              export PATH="$HOME/.opentofu/bin:$HOME/.local/bin:$PATH"
+                              export NX_BASE="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>"
+                              export NX_HEAD="<+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>"
+                              echo "NX_BASE: $NX_BASE"
+                              echo "NX_HEAD: $NX_HEAD"
+                              pnpm nx affected -t security
+                              echo "Security checks completed successfully"
+                            envVariables:
+                              NX_BASE: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_BASE>
+                              NX_HEAD: <+execution.steps.setup_dependencies.steps.setup_nx_env.output.outputVariables.NX_HEAD>
