@@ -6,6 +6,7 @@ trigger:
   orgIdentifier: default
   pipelineIdentifier: nx_affected_iac_quality_check
   pipelineBranchName: main
+  pipelineRepoName: foundations-cicd
   enabled: true
   tags:
     type: ci
