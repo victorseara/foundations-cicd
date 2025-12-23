@@ -15,6 +15,5 @@ pipeline:
       properties:
         ci:
           codebase:
-            connectorRef: account.VICTORSEARAORG
             repoName: <+input>
             build: <+input>
