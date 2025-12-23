@@ -1,0 +1,15 @@
+pipeline:
+  name: Sample Pipeline
+  identifier: Sample_Pipeline
+  tags: {}
+  template:
+    templateRef: account.template_nx_affected_iac_quality_check
+    versionLabel: v1.0.0
+    templateInputs:
+      properties:
+        ci:
+          codebase:
+            repoName: <+input>
+            build: <+input>
+  projectIdentifier: Proof_Web
+  orgIdentifier: default
