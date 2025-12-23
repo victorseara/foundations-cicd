@@ -24,7 +24,7 @@ template:
               caching:
                 enabled: true
                 paths:
-                  - /root/.local/share/pnpm/store
+                  - /home/ubuntu/setup-pnpm/node_modules/.bin/store/v3
                   - node_modules
               platform:
                 os: Linux
