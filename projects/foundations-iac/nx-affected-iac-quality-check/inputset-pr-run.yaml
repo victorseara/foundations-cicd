@@ -6,10 +6,12 @@ inputSet:
   orgIdentifier: default
   pipeline:
     identifier: nx_affected_iac_quality_check
-    properties:
-      ci:
-        codebase:
-          build:
-            type: PR
-            spec:
-              number: <+trigger.prNumber>
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              build:
+                type: PR
+                spec:
+                  number: <+trigger.prNumber>
