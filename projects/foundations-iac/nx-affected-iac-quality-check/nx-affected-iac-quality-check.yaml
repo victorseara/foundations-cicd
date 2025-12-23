@@ -11,14 +11,37 @@ pipeline:
     connectorRef: account.VICTORSEARAORG
     repoName: <+trigger.payload.repository.name>
     build: <+input>
-  template:
-    templateRef: account.template_nx_affected_iac_quality_check
-    versionLabel: v1.0.0
-    gitBranch: main
-    templateInputs:
-      properties:
-        ci:
-          codebase:
-            connectorRef: account.VICTORSEARAORG
-            repoName: <+trigger.payload.repository.name>
-            build: <+input>
+  stages:
+    - stage:
+        name: Testing pipeline connection
+        identifier: testing_pipeline_connection
+        type: CI
+        spec:
+          spec:
+            cloneCodebase: true
+            caching:
+              enabled: true
+              override: false
+          buildIntelligence:
+            enabled: true
+          execution:
+            steps:
+              - step:
+                  name: Echo pipeline connection successful
+                  identifier: echo_pipeline_connection_successful
+                  type: Run
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Pipeline connection successful!"
+#   template:
+#     templateRef: account.template_nx_affected_iac_quality_check
+#     versionLabel: v1.0.0
+#     gitBranch: main
+#     templateInputs:
+#       properties:
+#         ci:
+#           codebase:
+#             connectorRef: account.VICTORSEARAORG
+#             repoName: <+trigger.payload.repository.name>
+#             build: <+input>
