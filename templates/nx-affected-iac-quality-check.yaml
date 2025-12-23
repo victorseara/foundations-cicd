@@ -43,7 +43,7 @@ template:
                             name: Install Pnpm
                             identifier: install_pnpm
                             spec:
-                              uses: pnpm/action-setup@v4
+                              uses: pnpm/action-setup@v2
                               with:
                                 version-file: .pnpm-version
                         - step:
@@ -51,7 +51,7 @@ template:
                             name: Install Node
                             identifier: install_node
                             spec:
-                              uses: actions/setup-node@v4
+                              uses: actions/setup-node@v2
                               with:
                                 node-version-file: .nvmrc
                                 cache: pnpm
