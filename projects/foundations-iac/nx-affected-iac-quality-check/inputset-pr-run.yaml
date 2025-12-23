@@ -11,7 +11,7 @@ inputSet:
         properties:
           ci:
             codebase:
-              repoName: foundations-iac
+              repoName: <+input>
               build:
                 type: PR
                 spec:
