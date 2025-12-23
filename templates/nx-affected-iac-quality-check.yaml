@@ -3,8 +3,6 @@ template:
   identifier: nx_affected_iac_quality_check
   versionLabel: v1.0.0
   type: Stage
-  projectIdentifier: <+input>
-  orgIdentifier: <+input>
   tags:
     type: ci
     scope: iac
